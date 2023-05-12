@@ -52,10 +52,10 @@ def try_download_file(url, out_file):
 	 	return 1	
 
 def try_download_and_unpack_zip(suite):
-	url      = ASSETS_BASE_URL.format(suite, "{}.zip".format(suite))
-	out_file = DOWNLOAD_BASE_PATH.format(suite) + "/{}.zip".format(suite)
+	url = ASSETS_BASE_URL.format(suite, f"{suite}.zip")
+	out_file = f"{DOWNLOAD_BASE_PATH.format(suite)}/{suite}.zip"
 
-	print("\tDownloading {} to {}.".format(url, out_file))
+	print(f"\tDownloading {url} to {out_file}.")
 
 	if try_download_file(url, out_file) is not None:
 		print("Could not download ZIP file")
@@ -68,7 +68,7 @@ def try_download_and_unpack_zip(suite):
 				filename = file.filename
 				extract_path = DOWNLOAD_BASE_PATH.format(suite)
 
-				print("\t\tExtracting: {}".format(filename))
+				print(f"\t\tExtracting: {filename}")
 				z.extract(file, extract_path)
 	except:
 		print("Could not extract ZIP file")
@@ -76,7 +76,7 @@ def try_download_and_unpack_zip(suite):
 
 def main():
 	for suite in TEST_SUITES:
-		print("Downloading {} assets".format(suite))
+		print(f"Downloading {suite} assets")
 
 		# Make assets path
 		try:
@@ -91,7 +91,7 @@ def main():
 			return r
 
 		# We could fall back on downloading the PNG files individually, but it's slow
-		print("Done downloading {} assets.".format(suite))
+		print(f"Done downloading {suite} assets.")
 
 
 

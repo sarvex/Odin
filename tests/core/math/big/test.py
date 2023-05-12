@@ -117,10 +117,9 @@ UNTIL_ITERS = 0
 def we_iterate():
 	if args.timed:
 		return TOTAL_TIME < UNTIL_TIME
-	else:
-		global UNTIL_ITERS
-		UNTIL_ITERS -= 1
-		return UNTIL_ITERS != -1
+	global UNTIL_ITERS
+	UNTIL_ITERS -= 1
+	return UNTIL_ITERS != -1
 
 #
 # Error enum values
@@ -154,8 +153,8 @@ gc.disable()
 try:
 	l = cdll.LoadLibrary(LIB_PATH)
 except:
- 	print("Couldn't find or load " + LIB_PATH + ".")
- 	exit(1)
+	print(f"Couldn't find or load {LIB_PATH}.")
+	exit(1)
 
 def load(export_name, args, res):
 	export_name.argtypes = args
@@ -211,10 +210,10 @@ def test(test_name: "", res: Res, param=[], expected_error = Error.Okay, expecte
 
 	if err != expected_error:
 		error_loc  = res.res.decode('utf-8')
-		error = "{}: {} in '{}'".format(test_name, err, error_loc)
+		error = f"{test_name}: {err} in '{error_loc}'"
 
 		if len(param):
-			error += " with params {}".format(param)
+			error += f" with params {param}"
 
 		print(error, flush=True)
 		passed = False
@@ -227,9 +226,9 @@ def test(test_name: "", res: Res, param=[], expected_error = Error.Okay, expecte
 			pass
 
 		if r != expected_result:
-			error = "{}: Result was '{}', expected '{}'".format(test_name, r, expected_result)
+			error = f"{test_name}: Result was '{r}', expected '{expected_result}'"
 			if len(param):
-				error += " with params {}".format(param)
+				error += f" with params {param}"
 
 			print(error, flush=True)
 			passed = False
@@ -239,10 +238,7 @@ def test(test_name: "", res: Res, param=[], expected_error = Error.Okay, expecte
 	return passed
 
 def arg_to_odin(a):
-	if a >= 0:
-		s = hex(a)[2:]
-	else:
-		s = '-' + hex(a)[3:]
+	s = hex(a)[2:] if a >= 0 else f'-{hex(a)[3:]}'
 	return s.encode('utf-8')
 
 
@@ -284,17 +280,13 @@ def big_integer_lcm(a, b):
 def test_add(a = 0, b = 0, expected_error = Error.Okay):
 	args = [arg_to_odin(a), arg_to_odin(b)]
 	res  = add(*args)
-	expected_result = None
-	if expected_error == Error.Okay:
-		expected_result = a + b
+	expected_result = a + b if expected_error == Error.Okay else None
 	return test("test_add", res, [a, b], expected_error, expected_result)
 
 def test_sub(a = 0, b = 0, expected_error = Error.Okay):
 	args = [arg_to_odin(a), arg_to_odin(b)]
 	res  = sub(*args)
-	expected_result = None
-	if expected_error == Error.Okay:
-		expected_result = a - b
+	expected_result = a - b if expected_error == Error.Okay else None
 	return test("test_sub", res, [a, b], expected_error, expected_result)
 
 def test_mul(a = 0, b = 0, expected_error = Error.Okay):
@@ -302,13 +294,11 @@ def test_mul(a = 0, b = 0, expected_error = Error.Okay):
 	try:
 		res  = mul(*args)
 	except OSError as e:
-		print("{} while trying to multiply {} x {}.".format(e, a, b))
+		print(f"{e} while trying to multiply {a} x {b}.")
 		if EXIT_ON_FAIL: exit(3)
 		return False
 
-	expected_result = None
-	if expected_error == Error.Okay:
-		expected_result = a * b
+	expected_result = a * b if expected_error == Error.Okay else None
 	return test("test_mul", res, [a, b], expected_error, expected_result)
 
 def test_sqr(a = 0, b = 0, expected_error = Error.Okay):
@@ -316,13 +306,11 @@ def test_sqr(a = 0, b = 0, expected_error = Error.Okay):
 	try:
 		res  = sqr(*args)
 	except OSError as e:
-		print("{} while trying to square {}.".format(e, a))
+		print(f"{e} while trying to square {a}.")
 		if EXIT_ON_FAIL: exit(3)
 		return False
 
-	expected_result = None
-	if expected_error == Error.Okay:
-		expected_result = a * a
+	expected_result = a * a if expected_error == Error.Okay else None
 	return test("test_sqr", res, [a], expected_error, expected_result)
 
 def test_div(a = 0, b = 0, expected_error = Error.Okay):
@@ -330,7 +318,7 @@ def test_div(a = 0, b = 0, expected_error = Error.Okay):
 	try:
 		res  = div(*args)
 	except OSError as e:
-		print("{} while trying divide to {} / {}.".format(e, a, b))
+		print(f"{e} while trying divide to {a} / {b}.")
 		if EXIT_ON_FAIL: exit(3)
 		return False
 	expected_result = None
@@ -362,12 +350,7 @@ def test_pow(base = 0, power = 0, expected_error = Error.Okay):
 
 	expected_result = None
 	if expected_error == Error.Okay:
-		if power < 0:
-			expected_result = 0
-		else:
-			# NOTE(Jeroen): Don't use `math.pow`, it's a floating point approximation.
-			#               Use built-in `pow` or `a**b` instead.
-			expected_result = pow(base, power)
+		expected_result = 0 if power < 0 else pow(base, power)
 	return test("test_pow", res, [base, power], expected_error, expected_result)
 
 def test_sqrt(number = 0, expected_error = Error.Okay):
@@ -375,16 +358,13 @@ def test_sqrt(number = 0, expected_error = Error.Okay):
 	try:
 		res = int_sqrt(*args)
 	except OSError as e:
-		print("{} while trying to sqrt {}.".format(e, number))
+		print(f"{e} while trying to sqrt {number}.")
 		if EXIT_ON_FAIL: exit(3)
 		return False
 
 	expected_result = None
 	if expected_error == Error.Okay:
-		if number < 0:
-			expected_result = 0
-		else:
-			expected_result = big_integer_sqrt(number)
+		expected_result = 0 if number < 0 else big_integer_sqrt(number)
 	return test("test_sqrt", res, [number], expected_error, expected_result)
 
 def root_n(number, root):
@@ -400,11 +380,7 @@ def test_root_n(number = 0, root = 0, expected_error = Error.Okay):
 	res  = int_root_n(*args)
 	expected_result = None
 	if expected_error == Error.Okay:
-		if number < 0:
-			expected_result = 0
-		else:
-			expected_result = root_n(number, root)
-
+		expected_result = 0 if number < 0 else root_n(number, root)
 	return test("test_root_n", res, [number, root], expected_error, expected_result)
 
 def test_shl_leg(a = 0, digits = 0, expected_error = Error.Okay):
@@ -431,9 +407,7 @@ def test_shr_leg(a = 0, digits = 0, expected_error = Error.Okay):
 def test_shl(a = 0, bits = 0, expected_error = Error.Okay):
 	args  = [arg_to_odin(a), bits]
 	res   = int_shl(*args)
-	expected_result = None
-	if expected_error == Error.Okay:
-		expected_result = a << bits
+	expected_result = a << bits if expected_error == Error.Okay else None
 	return test("test_shl", res, [a, bits], expected_error, expected_result)
 
 def test_shr(a = 0, bits = 0, expected_error = Error.Okay):
@@ -452,10 +426,7 @@ def test_shr(a = 0, bits = 0, expected_error = Error.Okay):
 def test_shr_signed(a = 0, bits = 0, expected_error = Error.Okay):
 	args  = [arg_to_odin(a), bits]
 	res   = int_shr_signed(*args)
-	expected_result = None
-	if expected_error == Error.Okay:
-		expected_result = a >> bits
-		
+	expected_result = a >> bits if expected_error == Error.Okay else None
 	return test("test_shr_signed", res, [a, bits], expected_error, expected_result)
 
 def test_factorial(number = 0, expected_error = Error.Okay):
@@ -463,23 +434,20 @@ def test_factorial(number = 0, expected_error = Error.Okay):
 	try:
 		res = int_factorial(*args)
 	except OSError as e:
-		print("{} while trying to factorial {}.".format(e, number))
+		print(f"{e} while trying to factorial {number}.")
 		if EXIT_ON_FAIL: exit(3)
 		return False
 
 	expected_result = None
 	if expected_error == Error.Okay:
 		expected_result = math.factorial(number)
-		
+
 	return test("test_factorial", res, [number], expected_error, expected_result)
 
 def test_gcd(a = 0, b = 0, expected_error = Error.Okay):
 	args  = [arg_to_odin(a), arg_to_odin(b)]
 	res   = int_gcd(*args)
-	expected_result = None
-	if expected_error == Error.Okay:
-		expected_result = math.gcd(a, b)
-		
+	expected_result = math.gcd(a, b) if expected_error == Error.Okay else None
 	return test("test_gcd", res, [a, b], expected_error, expected_result)
 
 def test_lcm(a = 0, b = 0, expected_error = Error.Okay):
